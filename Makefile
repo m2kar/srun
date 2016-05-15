@@ -1,84 +1,71 @@
-##############################################
-# OpenWrt Makefile for helloworld program
-#
-#
-# Most of the variables used here are defined in
-# the include directives below. We just need to
-# specify a basic description of the package,
-# where to build our program, where to find
-# the source files, and where to install the
-# compiled program on the router.
-#
-# Be very careful of spacing in this file.
-# Indents should be tabs, not spaces, and
-# there should be no trailing whitespace in
-# lines that are not commented.
-#
-##############################################
+#srun3.0
+#still_night@163.com
 
 include $(TOPDIR)/rules.mk
 
-# Name and release number of this package
-PKG_NAME:=srun
-PKG_RELEASE:=1.0
+LUCI_TITLE:=luci-app-srun
+LUCI_DEPENDS:=+luci
+LUCI_PKGARCH:=all
 
-# This specifies the directory where we're going to build the program.
-# The root build directory, $(BUILD_DIR), is by default the build_mipsel
-# directory in your OpenWrt SDK directory
-PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
-include $(INCLUDE_DIR)/package.mk
-
-# Specify package information for this program.
-# The variables defined here should be self explanatory.
-define Package/srun
-	SECTION:=utils
-	CATEGORY:=Utilities
-	TITLE:=srun_CMU_pppoe_client 
-#	DESCRIPTION:=\
-#	If you can't figure out what this program does, \\
-#	you're probably brain-dead and need immediate \\
-#	medical attention.
+define Package/$(PKG_NAME)/preinst
+	#!/bin/sh
+	chmod +x /etc/init.d/srun /etc/rc.d/S50srun
+	uci delete network.wan
+	uci set network.wan=interface
+	uci set network.wan._orig_bridge=false
+	uci set network.wan._orig_ifname=eth1
+	uci set network.wan.ifname=eth1
+	uci set network.wan.password=111111
+	uci set network.wan.proto=pppoe
+	uci set network.wan.mtu=1250
+	uci set network.wan.username={SRUN2}444444
+	uci set wireless.@wifi-iface[0].ssid=CMU-WIFI
+	uci set wireless.@wifi-iface[0].encryption=psk2
+	uci set wireless.@wifi-iface[0].key=1234567890
+	uci set wireless.@wifi-iface[0].wps_pushbutton=0
+	uci delete wireless.@wifi-iface[1]
+	uci delete wireless.@wifi-iface[1]
+	uci commit wireless
+	uci commit network
+	uci show network.wan
+	echo "uci change"
+	exit 0
 endef
 
-define Package/srun/description
-
-endef
+include ../../luci.mk
 
 
-# Specify what needs to be done to prepare for building the package.
-# In our case, we need to copy the source files to the build directory.
-# This is NOT the default.  The default uses the PKG_SOURCE_URL and the
-# PKG_SOURCE which is not defined here to download the source from the web.
-# In order to just build a simple program that we have just written, it is
-# much easier to do it this way.
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./src/* $(PKG_BUILD_DIR)/
-endef
-
-# We do not need to define Build/Configure or Build/Compile directives
-# The defaults are appropriate for compiling a simple program such as this one
-
-# Specify where and how to install the program. Since we only have one file,
-# the helloworld executable, install it by copying it to the /bin directory on
-# the router. The $(1) variable represents the root directory on the router running
-# OpenWrt. The $(INSTALL_DIR) variable contains a command to prepare the install
-# directory if it does not already exist.  Likewise $(INSTALL_BIN) contains the
-# command to copy the binary file from its current location (in our case the build
-# directory) to the install directory.
-define Package/srun/install
-	$(INSTALL_DIR) $(1)/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/srun $(1)/bin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/encode $(1)/bin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wan_mac $(1)/bin/
-endef
-
-# This line executes the necessary commands to compile our program.
-# The above define directives specify all the information needed, but this
-# line calls BuildPackage which in turn actually uses this information to
-# build a package.
-$(eval $(call BuildPackage,srun))
+#define Package/$(PKG_NAME)/install
+#	if [ -d $(PKG_BUILD_DIR)/luasrc ]; then \
+#	  $(INSTALL_DIR) $(1)$(LUCI_LIBRARYDIR); \
+#	  cp -pR $(PKG_BUILD_DIR)/luasrc/* $(1)$(LUCI_LIBRARYDIR)/; \
+#	  $(FIND) $(1)$(LUCI_LIBRARYDIR)/ -type f -name '*.luadoc' | $(XARGS) rm; \
+#	  $(if $(CONFIG_LUCI_SRCDIET),$(call SrcDiet,$(1)$(LUCI_LIBRARYDIR)/),true); \
+#	else true; fi
+#	if [ -d $(PKG_BUILD_DIR)/htdocs ]; then \
+#	  $(INSTALL_DIR) $(1)$(HTDOCS); \
+#	  cp -pR $(PKG_BUILD_DIR)/htdocs/* $(1)$(HTDOCS)/; \
+#	else true; fi
+#	if [ -d $(PKG_BUILD_DIR)/root ]; then \
+#	  $(INSTALL_DIR) $(1)/; \
+#	  cp -pR $(PKG_BUILD_DIR)/root/* $(1)/; \
+#	else true; fi
+#	if [ -d $(PKG_BUILD_DIR)/src ]; then \
+#	  $(call Build/Install/Default) \
+#	  $(CP) $(PKG_INSTALL_DIR)/* $(1)/; \
+#	else true; fi
+#	chmod +x $(1)/etc/init.d/srun $(1)/etc/rc.d/S50srun	
+##	uci delete network.wan
+##	uci set network.wan=interface
+##	uci set network.wan._orig_bridge=false
+##	uci set network.wan._orig_ifname=eth1
+##	uci set network.wan.password=111111
+##	uci set network.wan.proto=pppoe
+##	uci set network.wan.mtu=1250
+##	uci set network.wan.username={SRUN2K}444444
+##	uci commit
+#endef
 
 
-
+# call BuildPackage - OpenWrt buildroot signature

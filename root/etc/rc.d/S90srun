@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common 
+# /init.d/test 
+START=50 
+start() 
+ { 
+ echo "srun start sucess" |tee -a /tmp/log/srun.log 
+ sh /etc/srun/srun_run.sh|tee -a /tmp/log/srun.log &
+} 
+stop() 
+{ 
+ kill  `ps | grep srun| awk '{print $1}'` |tee -a /tmp/log/srun.log 
+ echo "stop success" |tee -a /tmp/log/srun.log 
+}

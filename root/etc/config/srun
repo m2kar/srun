@@ -1,0 +1,5 @@
+config user 'cmu_wifi'
+	option username '000000'
+	option password '111111'
+
+
